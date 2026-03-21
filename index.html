@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Kasir Pintar (POS)</title>
+
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Main POS Interface -->
+    <div id="appContainer" class="app-container">
+        <!-- Sidebar Categories -->
+        <aside class="sidebar glass-panel">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-store logo-icon"></i>
+            </div>
+            <ul class="category-list" id="categoryList">
+                <li class="active" data-category="all"><i class="fa-solid fa-border-all"></i><span class="tooltip">Semua</span></li>
+                <li data-category="makanan"><i class="fa-solid fa-burger"></i><span class="tooltip">Makanan</span></li>
+                <li data-category="minuman"><i class="fa-solid fa-mug-hot"></i><span class="tooltip">Minuman</span></li>
+                <li data-category="snack"><i class="fa-solid fa-cookie"></i><span class="tooltip">Snack</span></li>
+            </ul>
+            <div class="sidebar-footer">
+                <button class="btn-icon" id="btnGoAdmin" title="Pengaturan"><i class="fa-solid fa-cog"></i></button>
+            </div>
+        </aside>
+
+        <!-- Main Product Area -->
+        <main class="main-area">
+            <header class="top-bar glass-panel">
+                <div class="top-actions" style="flex: 1; width: 100%;">
+                    <div class="search-box" style="width: 100%;">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" placeholder="Cari produk..." style="width: 100%; max-width: 600px;">
+                    </div>
+                </div>
+            </header>
+
+            <div class="products-grid" id="productsGrid">
+                <!-- Product items will be loaded here via JS -->
+                 <div class="product-card glass-panel">
+                    <div class="product-img"><i class="fa-solid fa-mug-hot"></i></div>
+                    <div class="product-info">
+                        <h4>Kopi Susu Gula Aren</h4>
+                        <p class="price">Rp 15.000</p>
+                    </div>
+                 </div>
+                 <div class="product-card glass-panel">
+                    <div class="product-img"><i class="fa-solid fa-burger"></i></div>
+                    <div class="product-info">
+                        <h4>Burger Sapi Spesial</h4>
+                        <p class="price">Rp 25.000</p>
+                    </div>
+                 </div>
+                 <div class="product-card glass-panel">
+                    <div class="product-img"><i class="fa-solid fa-glass-water"></i></div>
+                    <div class="product-info">
+                        <h4>Air Mineral</h4>
+                        <p class="price">Rp 5.000</p>
+                    </div>
+                 </div>
+            </div>
+        </main>
+
+        <!-- Cart / Checkout Area -->
+        <aside class="cart-sidebar glass-panel">
+            <div class="cart-header">
+                <h3>Pesanan</h3>
+                <span class="order-id">#ORD-001</span>
+            </div>
+            
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items list -->
+                <div class="empty-cart">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <p>Keranjang masih kosong</p>
+                </div>
+            </div>
+
+            <div class="cart-summary glass-panel">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Pajak (0%)</span>
+                    <span id="tax">Rp 0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="total">Rp 0</span>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-block" id="btnCheckout" style="padding: 15px; font-size: 1.1rem;">
+                        <i class="fa-solid fa-money-bill-wave"></i> Bayar
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal Pembayaran (Uang & Diskon) -->
+    <div id="modalPembayaran" class="glass-overlay">
+        <div class="glass-panel" style="width: 90%; max-width: 450px; padding: 15px 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0; font-size: 1.2rem;">Konfirmasi Pembayaran</h3>
+                <button type="button" class="btn-icon" id="btnClosePayment" style="width: 25px; height: 25px; font-size: 0.9rem;"><i class="fa-solid fa-times"></i></button>
+            </div>
+            
+            <form id="formPembayaran">
+                <div class="summary-row" style="font-size: 0.95rem; margin-bottom: 5px;">
+                    <span>Total Belanja:</span>
+                    <strong id="payTotalBelanja" style="color: var(--dark);">Rp 0</strong>
+                </div>
+
+                <div class="summary-row total" style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed rgba(0,0,0,0.1);">
+                    <span>Tagihan Akhir:</span>
+                    <strong id="payTotalTagihan" style="color: var(--primary); font-size: 1.3rem;">Rp 0</strong>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <i class="fa-solid fa-money-bill-wave" style="color: var(--success);"></i>
+                    <input type="text" inputmode="numeric" id="payJumlahUang" placeholder="Uang Pembeli (Rp)" required style="font-size: 1.1rem; font-weight: bold; padding: 10px 15px 10px 40px;">
+                </div>
+                
+                <!-- Preset Uang Cepat (Kalkulator Mini) -->
+                <div style="display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 2px;">
+                    <button type="button" class="btn btn-secondary btn-reset-uang" style="padding: 5px 8px; min-width: 40px; flex-shrink: 0; font-size:1rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);" title="Ulang (Reset ke 0)"><i class="fa-solid fa-arrow-rotate-left"></i></button>
+                    <button type="button" class="btn btn-secondary btn-uang-preset" data-val="5000" style="padding: 5px 8px; flex-shrink: 0; font-size:0.85rem;">5k</button>
+                    <button type="button" class="btn btn-secondary btn-uang-preset" data-val="10000" style="padding: 5px 8px; flex-shrink: 0; font-size:0.85rem;">10k</button>
+                    <button type="button" class="btn btn-secondary btn-uang-preset" data-val="20000" style="padding: 5px 8px; flex-shrink: 0; font-size:0.85rem;">20k</button>
+                    <button type="button" class="btn btn-secondary btn-uang-preset" data-val="50000" style="padding: 5px 8px; flex-shrink: 0; font-size:0.85rem;">50k</button>
+                    <button type="button" class="btn btn-secondary btn-uang-preset" data-val="100000" style="padding: 5px 8px; flex-shrink: 0; font-size:0.85rem;">100k</button>
+                </div>
+
+                <div class="summary-row" style="margin-bottom: 15px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px;">
+                    <span>Kembalian:</span>
+                    <strong id="payKembalian" style="color: var(--danger); font-size: 1.2rem;">Rp 0</strong>
+                </div>
+
+                <!-- Bagian Diskon dipindah ke bawah sebelum tombol Selesai -->
+                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    <div style="position: relative; width: 70px;">
+                        <select id="payTipeDiskon" style="width: 100%; height: 100%; padding: 8px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.6); outline: none; appearance: none; font-weight: bold; text-align: center; cursor: pointer; color: var(--warning);">
+                            <option value="nominal">Rp</option>
+                            <option value="persen">%</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0; flex: 1;">
+                        <i class="fa-solid fa-tag" style="color: var(--warning);"></i>
+                        <input type="text" inputmode="numeric" id="payDiskon" placeholder="Beri Diskon..." value="0" style="padding: 10px 15px 10px 40px; font-size: 0.95rem;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="font-size: 1.05rem; padding: 10px;">
+                    <i class="fa-solid fa-check-circle"></i> Selesaikan Transaksi
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Struk Printer (Visual) -->
+    <div id="modalStruk" class="glass-overlay" style="align-items: flex-start; overflow-y: auto; padding: 40px 0;">
+        <div class="glass-panel" style="width: 90%; max-width: 350px; padding: 0; background: #fff; color: #000; border-radius: 4px; border: 1px solid #ddd; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin: auto;">
+            
+            <div id="areaStruk" style="padding: 20px; font-family: monospace; font-size: 0.85rem;">
+                <!-- Isi Struk akan di-generate oleh JS -->
+            </div>
+            
+            <div style="background: var(--bg-color); padding: 15px; border-top: 1px dashed #ddd; display: flex; gap: 10px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;">
+                <button type="button" class="btn btn-secondary" id="btnCloseStruk" style="flex: 1; min-height: 40px;"><i class="fa-solid fa-times"></i> Tutup</button>
+                <button type="button" class="btn btn-primary" id="btnPrintStrukFisik" style="flex: 1; min-height: 40px;"><i class="fa-solid fa-print"></i> Cetak Ulang</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Interface -->
+    <div id="adminContainer" class="dashboard-container hidden">
+        <header class="dashboard-header glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-cash-register"></i> Pengaturan
+            </div>
+            <nav class="nav-links">
+                <a href="#" class="active" data-tab="ringkasan">Ringkasan</a>
+                <a href="#" data-tab="produk">Kelola Produk</a>
+                <a href="#" data-tab="transaksi">Riwayat Transaksi</a>
+                <a href="#" data-tab="pengaturan">Pengaturan</a>
+            </nav>
+            <div class="user-profile">
+                <button class="btn-icon" id="btnGoPOS" title="Kembali ke Kasir"><i class="fa-solid fa-times"></i></button>
+            </div>
+        </header>
+
+        <main class="dashboard-content">
+            <!-- Tab: Ringkasan -->
+            <section id="tab-ringkasan" class="tab-content active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Ringkasan Penjualan</h3>
+                    <div style="position: relative; width: 200px;">
+                        <i class="fa-solid fa-calendar-alt" style="position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: var(--text-muted); z-index: 2;"></i>
+                        <select id="filterWaktu" style="width: 100%; padding: 10px 15px 10px 40px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; background: rgba(255,255,255,0.8); font-family: var(--font-main); font-size: 0.9rem; outline: none; appearance: none; cursor: pointer;">
+                            <option value="hari_ini" selected>Hari Ini</option>
+                            <option value="kemarin">Kemarin</option>
+                            <option value="7_hari">7 Hari Terakhir</option>
+                            <option value="1_bulan">1 Bulan Terakhir</option>
+                            <option value="semua">Semua Waktu</option>
+                            <option value="kustom">Pilih Tanggal Kustom...</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                <div id="kustomRentangMenu" style="display: none; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 20px; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 5px; font-weight: bold;">Dari Tanggal:</label>
+                        <input type="date" id="filterTglMulai" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; outline: none; font-family: var(--font-main);">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 5px; font-weight: bold;">Sampai Tanggal:</label>
+                        <input type="date" id="filterTglAkhir" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; outline: none; font-family: var(--font-main);">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: auto;">
+                        <button class="btn btn-primary" id="btnTerapkanKustom" style="padding: 10px 15px;"><i class="fa-solid fa-check"></i> Terapkan</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon income"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="stat-info">
+                            <h3>Total Pendapatan</h3>
+                            <p class="stat-value">Rp 0</p>
+                            <span class="stat-desc">Hari Ini</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon sales"><i class="fa-solid fa-chart-bar"></i></div>
+                        <div class="stat-info">
+                            <h3>Total Transaksi</h3>
+                            <p class="stat-value">0</p>
+                            <span class="stat-desc">Hari Ini</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon items"><i class="fa-solid fa-box-open"></i></div>
+                        <div class="stat-info">
+                            <h3>Produk Terjual</h3>
+                            <p class="stat-value">0</p>
+                            <span class="stat-desc">Item Hari Ini</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="margin-top: 25px; padding: 25px;">
+                    <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 10px;">
+                        <i class="fa-solid fa-trophy" style="color: #f59e0b; margin-right: 8px;"></i> Produk Terlaris
+                    </h3>
+                    <div id="produkLarisList" style="display: flex; flex-direction: column; gap: 18px;">
+                        <div style="text-align: center; color: var(--text-muted); padding: 10px;">Memuat data...</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Tab: Riwayat Transaksi -->
+            <section id="tab-transaksi" class="tab-content hidden">
+                <div class="recent-transactions glass-panel" style="padding: 25px; overflow-x: auto;">
+                    <h3 style="margin-top: 0; margin-bottom: 15px;">Riwayat Transaksi</h3>
+                    <table class="data-table mt-2">
+                        <thead>
+                            <tr>
+                                <th>ID Nota</th>
+                                <th>Waktu</th>
+                                <th>Item</th>
+                                <th style="text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveTransactionsList">
+                            <tr><td colspan="4" style="text-align: center;">Menunggu transaksi...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Tab: Kelola Produk & Kategori -->
+            <section id="tab-produk" class="tab-content hidden">
+                <div class="glass-panel" style="padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>Daftar Produk</h3>
+                        <button class="btn btn-primary" id="btnTambahProduk"><i class="fa-solid fa-plus"></i> Tambah Produk</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Gambar</th>
+                                <th>Nama Produk</th>
+                                <th>Kategori</th>
+                                <th>Harga</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductsList">
+                            <tr>
+                                <td><div class="product-img" style="width: 40px; height: 40px; font-size: 1rem;"><i class="fa-solid fa-mug-hot"></i></div></td>
+                                <td>Kopi Susu Gula Aren</td>
+                                <td>Minuman</td>
+                                <td>Rp 15.000</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 5px 10px;"><i class="fa-solid fa-edit"></i></button>
+                                    <button class="btn" style="background:var(--danger); color:white; padding: 5px 10px;"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Tab: Pengaturan Toko & Struk -->
+            <section id="tab-pengaturan" class="tab-content hidden">
+                <div class="glass-panel" style="padding: 30px; max-width: 600px; margin: 0 auto;">
+                    <h3 style="margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <span><i class="fa-solid fa-receipt"></i> Pengaturan Toko & Struk Printer</span>
+                        <button type="button" class="btn btn-secondary" id="btnConnectPrinter" style="font-size: 0.85rem; padding: 6px 12px; margin: 0;"><i class="fa-brands fa-bluetooth"></i> Hubungkan Printer</button>
+                    </h3>
+                    
+                    <form id="formPengaturan">
+                        <div class="input-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark);">Logo Toko (Opsional)</label>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <img id="previewLogo" src="" alt="Logo" style="width: 80px; height: 80px; object-fit: contain; border-radius: 8px; background: rgba(255,255,255,0.5); border: 1px dashed var(--primary); display: none;">
+                                <div style="flex: 1;">
+                                    <input type="file" id="setLogoFile" accept="image/*" style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; background: rgba(255,255,255,0.6);">
+                                    <small style="color: var(--text-muted); display: block; margin-top: 5px;">*Gunakan file gambar berlatar putih/transparan untuk printer</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark);">Nama Toko</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class="fa-solid fa-store"></i>
+                                <input type="text" id="setNamaToko" placeholder="Contoh: KASIR PINTAR" required>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark);">Alamat</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <input type="text" id="setAlamat" placeholder="Contoh: Jl. Kebangsaan No. 12" required>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark);">Ukuran Kertas Printer Bluetooth</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class="fa-solid fa-print" style="z-index: 2;"></i>
+                                <select id="setUkuranKertas" style="width: 100%; padding: 15px 15px 15px 45px; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; background: rgba(255,255,255,0.6); font-family: var(--font-main); font-size: 1rem; outline: none; appearance: none;">
+                                    <option value="32">Thermal 58mm (Kecil - Standar)</option>
+                                    <option value="48">Thermal 80mm (Besar)</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down" style="position: absolute; top: 50%; right: 15px; left: auto; color: var(--text-muted); pointer-events: none;"></i>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark);">Pesan Bawah (Footer)</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class="fa-solid fa-message"></i>
+                                <input type="text" id="setPesananBawah" placeholder="Contoh: TERIMA KASIH TELAH BERBELANJA" required>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark);">PIN Keamanan Aplikasi</label>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <i class="fa-solid fa-key" style="z-index: 2;"></i>
+                                <input type="text" id="setAdminPin" placeholder="Contoh: 1234" maxlength="8" required style="width: 100%; padding: 15px 15px 15px 45px; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; background: rgba(255,255,255,0.6); font-family: var(--font-main); font-size: 1rem; outline: none; appearance: none; transition: all 0.3s ease;">
+                            </div>
+                            <small style="color: var(--text-muted); display: block; margin-top: 5px;">*PIN ini digunakan untuk masuk ke ruang Pengaturan ini (Default: 1234).</small>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 25px;">
+                            <button type="button" class="btn btn-secondary" id="btnPreviewStruk" style="flex: 1;"><i class="fa-solid fa-eye"></i> Preview Struk</button>
+                            <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fa-solid fa-save"></i> Simpan Pengaturan</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Tambah Produk -->
+    <div id="modalProduk" class="glass-overlay">
+        <div class="glass-panel" style="width: 90%; max-width: 400px; padding: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="modalTitle">Tambah Produk Baru</h3>
+                <button class="btn-icon" id="btnCloseModal" style="width: 30px; height: 30px; font-size: 1rem;"><i class="fa-solid fa-times"></i></button>
+            </div>
+            
+            <form id="formProduk">
+                <input type="hidden" id="prodId">
+                
+                <div class="input-group">
+                    <i class="fa-solid fa-box"></i>
+                    <input type="text" id="prodName" placeholder="Nama Produk" required>
+                </div>
+                
+                <div class="input-group">
+                    <i class="fa-solid fa-tag"></i>
+                    <input type="number" id="prodPrice" placeholder="Harga (misal: 15000)" required min="0">
+                </div>
+                
+                <div class="input-group" style="position: relative; margin-bottom: 20px;">
+                    <i class="fa-solid fa-list" style="position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: var(--text-muted); z-index: 2;"></i>
+                    <select id="prodCategory" required style="width: 100%; padding: 15px 15px 15px 45px; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; background: rgba(255,255,255,0.6); font-family: var(--font-main); font-size: 1rem; outline: none; transition: all 0.3s ease; appearance: none;">
+                        <option value="makanan">Makanan</option>
+                        <option value="minuman">Minuman</option>
+                        <option value="snack">Snack</option>
+                    </select>
+                    <!-- Custom Arrow for Select -->
+                    <i class="fa-solid fa-chevron-down" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"></i>
+                </div>
+                
+                <div class="input-group" style="position: relative; margin-bottom: 20px;">
+                    <i class="fa-solid fa-icons" style="position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: var(--text-muted); z-index: 2;"></i>
+                    <select id="prodIcon" required style="width: 100%; padding: 15px 15px 15px 45px; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; background: rgba(255,255,255,0.6); font-family: var(--font-main); font-size: 1rem; outline: none; transition: all 0.3s ease; appearance: none;">
+                        <option value="fa-box-open">Ikon Kotak (Bawaan)</option>
+                        <option value="fa-mug-hot">Ikon Gelas Panas</option>
+                        <option value="fa-glass-water">Ikon Gelas Dingin</option>
+                        <option value="fa-burger">Ikon Burger</option>
+                        <option value="fa-cookie">Ikon Snack/Cookie</option>
+                        <option value="fa-bowl-food">Ikon Mangkuk</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"></i>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main); font-size: 0.9rem;">Atau Upload Gambar Sendiri</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img id="previewProdImg" src="" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px dashed var(--primary); display: none;">
+                        <input type="file" id="setProdImageFile" accept="image/*" style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; background: rgba(255,255,255,0.6); font-family: var(--font-main);">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Simpan Produk</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal PIN Pengaturan -->
+    <div id="modalPin" class="glass-overlay">
+        <div class="glass-panel" style="width: 90%; max-width: 350px; padding: 30px;">
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;"><i class="fa-solid fa-lock" style="color: var(--primary);"></i> Keamanan</h3>
+            </div>
+            <form id="formPin" style="text-align: center;">
+                <p style="margin-bottom: 20px; font-size: 0.95rem; color: var(--text-muted);">Masukkan kode PIN untuk mengakses pengaturan.</p>
+                <input type="password" id="inputPin" required autocomplete="off" maxlength="8" inputmode="numeric" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.8); text-align: center; font-size: 2rem; letter-spacing: 15px; font-family: 'Courier New', monospace; outline: none; margin-bottom: 10px;">
+                <div id="errorPin" style="color: var(--danger); font-size: 0.85rem; display: none; margin-bottom: 15px; font-weight: 600;">PIN Salah! Coba lagi.</div>
+                <small style="color: var(--primary); display: block; margin-bottom: 20px; font-weight: 600;"><i class="fa-solid fa-circle-info"></i> PIN Default: 1234</small>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" id="btnBatalPin" style="flex: 1; justify-content: center;">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">Masuk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/pos.js"></script>
+    <script src="js/printer.js"></script>
+    <script src="js/admin.js"></script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker Registered!'))
+            .catch(err => console.log('Service Worker Failed!', err));
+        }
+    </script>
+</body>
+</html>
