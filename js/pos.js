@@ -341,12 +341,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const kembalianAkhir = uangDibayar - totalTagihanAkhir;
+
             // Generate Transaction ID
             const date = new Date();
             const orderId = 'ORD-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-            const kembalianAkhir = uangDibayar - totalTagihanAkhir;
             
-            const transaction = {
+            pendingTransactionData = {
                 id: orderId,
                 waktu: date.toISOString(),
                 items: [...cart],
@@ -358,29 +359,66 @@ document.addEventListener('DOMContentLoaded', () => {
                 kasir: document.getElementById('username')?.value || 'Admin'
             };
 
-            // Simpan transaksi ke "Database" (akan otomatis tersinkron ke Admin/Owner)
-            const currentTransactions = db.get('transactions');
-            currentTransactions.push(transaction);
-            db.set('transactions', currentTransactions);
-
-            // Cetak ke Printer jika ada
-            if(window.cetakStruk) {
-                window.cetakStruk(transaction);
-            }
-
-            // Reset Kasir & UI Angka Produk
-            const cachedArr = [...cart];
-            cart = [];
-            cachedArr.forEach(i => updateCardQty(i.id));
-            renderCart();
-            modalPembayaran.classList.remove('active');
-            
-            // Ubah ID Pesanan di UI untuk antrean berikutnya
-            document.querySelector('.order-id').innerText = '#' + orderId;
-            
-            // Notifikasi sukses (optional bisa diganti modal cantik nanti)
-            alert(`✅ Transaksi Selesai!\n\nKembalian: Rp ${kembalianAkhir.toLocaleString('id-ID')}`);
+            // Tampilkan Modal Konfirmasi HTML Custom
+            document.getElementById('konfTagihan').innerText = `Rp ${totalTagihanAkhir.toLocaleString('id-ID')}`;
+            document.getElementById('konfDibayar').innerText = `Rp ${uangDibayar.toLocaleString('id-ID')}`;
+            document.getElementById('konfKembalian').innerText = `Rp ${kembalianAkhir.toLocaleString('id-ID')}`;
+            document.getElementById('modalKonfirmasi').classList.add('active');
         });
+
+        // Simpan data transaksi sementara saat popup konfirmasi muncul
+        let pendingTransactionData = null;
+
+        // --- Event Listener untuk Modal Konfirmasi Custom ---
+        const btnBatalKonfirmasi = document.getElementById('btnBatalKonfirmasi');
+        const btnLanjutKonfirmasi = document.getElementById('btnLanjutKonfirmasi');
+        
+        if (btnBatalKonfirmasi && btnLanjutKonfirmasi) {
+            btnBatalKonfirmasi.addEventListener('click', () => {
+                document.getElementById('modalKonfirmasi').classList.remove('active');
+                pendingTransactionData = null;
+            });
+            
+            btnLanjutKonfirmasi.addEventListener('click', () => {
+                if(!pendingTransactionData) return;
+                const transaction = pendingTransactionData;
+                
+                // Simpan transaksi
+                const currentTransactions = db.get('transactions');
+                currentTransactions.push(transaction);
+                db.set('transactions', currentTransactions);
+
+                // Cetak ke Printer jika ada
+                if(window.cetakStruk) {
+                    window.cetakStruk(transaction);
+                }
+
+                // Reset Kasir & UI
+                const cachedArr = [...cart];
+                cart = [];
+                cachedArr.forEach(i => updateCardQty(i.id));
+                renderCart();
+                
+                modalPembayaran.classList.remove('active');
+                document.getElementById('modalKonfirmasi').classList.remove('active');
+                document.querySelector('.order-id').innerText = '#' + 'ORD-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+                
+                // Tampilkan Modal Sukses HTML Custom
+                document.getElementById('suksesNota').innerText = transaction.id;
+                document.getElementById('suksesKembalian').innerText = `Rp ${transaction.kembalian.toLocaleString('id-ID')}`;
+                document.getElementById('modalSukses').classList.add('active');
+                
+                pendingTransactionData = null;
+            });
+        }
+        
+        // --- Event Listener untuk Tutup Modal Sukses ---
+        const btnTutupSukses = document.getElementById('btnTutupSukses');
+        if (btnTutupSukses) {
+            btnTutupSukses.addEventListener('click', () => {
+                document.getElementById('modalSukses').classList.remove('active');
+            });
+        }
     }
 
 });

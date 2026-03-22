@@ -1,0 +1,72 @@
+=============================================================
+PANDUAN MEMBUAT APK "KASIR BAKSO SULTAN" DI ANDROID STUDIO
+=============================================================
+
+### TAHAP 1: MEMBUAT PROYEK BARU
+1. Buka aplikasi **Android Studio** di komputer Anda.
+2. Klik **New Project**.
+3. Pilih cetakan **"Empty Views Activity"** lalu tekan Next.
+4. Isi kelengkapan berikut:
+   - Name: **Kasir Bakso Sultan**
+   - Package name: **com.baksosultan.kasir**
+   - Save location: biarkan aslinya
+   - Language: **Java** (Penting!)
+   - Minimum SDK: **API 24** (Android 7) atau bebas.
+5. Klik **Finish** dan tunggu proses memuat selesai (ditandai dengan berhentinya lampu loading biru di baris paling bawah).
+
+
+### TAHAP 2: MEMBUAT FOLDER ASET WEBSITE
+6. Di kiri layar (jendela Project), klik kanan pada bagian (app > src > main).
+7. Pilih: **New > Folder > Assets Folder**. Tekan Finish.
+8. Buka File Explorer (Folder) Windows Anda, dan pergilah ke tempat aplikasi ini berada, yaitu: `E:\html5\aplikasi\kasir-pintar\`
+9. Blok / Copy semua file di dalamnya (index.html, css, js, dll).
+10. Paste / Tempelkan file-file web tersebut persis ke dalam folder `assets` yang baru saja Anda buat di Android Studio tadi.
+
+
+### TAHAP 3: MENYAJIKAN APLIKASI WEBVIEW
+
+11. Buka file **`AndroidManifest.xml`** (ada di folder app > manifests).
+12. Tambahkan dua baris izin berikut di bawah teks <manifest ...> :
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+
+13. Buka file **`MainActivity.java`** (ada di folder app > java > com > baksosultan...).
+14. Hapus isinya dan GANTI dengan kode di bawah ini:
+
+
+package com.baksosultan.kasir; // Sesuaikan dengan nama package Anda!
+
+import android.os.Bundle;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        // Membuat wadah penampil Web (WebView)
+        WebView myWebView = new WebView(this);
+        WebSettings webSettings = myWebView.getSettings();
+        
+        // Mengaktifkan fitur Javascript dan penyimpanan database lokal
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        
+        // Membaca file index.html milik Anda di folder assets
+        myWebView.loadUrl("file:///android_asset/index.html");
+        
+        setContentView(myWebView);
+    }
+}
+
+
+### TAHAP 4: MENJADIKAN FILE .APK (SIAP INSTAL)
+
+15. Hubungkan komputer Anda ke internet.
+16. Di deretan menu paling atas Android Studio, klik menu **Build**.
+17. Pilih **Build Bundle(s) / APK(s)** > **Build APK(s)**.
+18. Android Studio akan merakit aplikasi Anda dalam 1-3 menit.
+19. Jika sudah selesai, akan muncul pesan kecil di pojok kanan bawah. Klik tulisan biru **Locate**!
+20. Hore! File bernama `app-debug.apk` adalah file Android yang siap Anda kirim ke HP manapun dan siap di-instal.

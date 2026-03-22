@@ -475,6 +475,38 @@
                 </div>
             </form>
         </div>
+    <!-- Modal Konfirmasi Cetak -->
+    <div id="modalKonfirmasi" class="glass-overlay" style="z-index: 10000;">
+        <div class="glass-panel" style="width: 90%; max-width: 350px; padding: 25px; text-align: center;">
+            <div style="font-size: 3rem; color: var(--warning); margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>
+            <h3 style="margin-bottom: 15px;">Konfirmasi Pesanan</h3>
+            <div style="background: rgba(0,0,0,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 0.95rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><span>Total Tagihan:</span><strong id="konfTagihan">Rp 0</strong></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><span>Uang Pembeli:</span><strong id="konfDibayar">Rp 0</strong></div>
+                <div style="display:flex; justify-content:space-between; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px;"><span>Kembalian:</span><strong id="konfKembalian" style="color:var(--danger)">Rp 0</strong></div>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Lanjutkan cetak struk dan selesaikan?</p>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary" id="btnBatalKonfirmasi" style="flex:1;">Cek Lagi</button>
+                <button type="button" class="btn btn-primary" id="btnLanjutKonfirmasi" style="flex:1;">Ya, Selesai</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cetak Sukses -->
+    <div id="modalSukses" class="glass-overlay" style="z-index: 10000;">
+        <div class="glass-panel" style="width: 90%; max-width: 350px; padding: 30px; text-align: center;">
+            <div style="font-size: 4rem; color: var(--success); margin-bottom: 15px;"><i class="fa-solid fa-check-circle"></i></div>
+            <h2 style="margin-bottom: 5px;">Transaksi Berhasil!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Nota: <strong id="suksesNota">ORD-000</strong></p>
+            
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px dashed var(--success);">
+                <div style="font-size: 0.85rem; color: var(--text-main); margin-bottom:5px; font-weight:600;">KEMBALIAN</div>
+                <div id="suksesKembalian" style="font-size: 1.8rem; font-weight: 800; color: var(--success);">Rp 0</div>
+            </div>
+            
+            <button type="button" class="btn btn-primary btn-block" id="btnTutupSukses" style="padding: 12px; font-size: 1.1rem;">Selesai & Lanjut</button>
+        </div>
     </div>
 
     <script src="js/firebase-config.js"></script>
