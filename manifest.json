@@ -1,7 +1,7 @@
 {
-  "name": "Kasir Pintar",
+  "name": "Kasir Bakso Sultan",
   "short_name": "Kasir",
-  "description": "Sistem Point of Sale (POS) Super Cepat",
+  "description": "Sistem Point of Sale (POS) Bakso Sultan",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -192,11 +192,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const encoder = new TextEncoder();
             const data = encoder.encode(strukText);
 
+            // PERBAIKAN: Kirim data dalam potongan sangat kecil (maks 50 byte) + Jeda
+            // Printer thermal 58mm rata-rata akan langsung "putus/gagal" jika 
+            // menelan data 512 byte sekaligus karena memorinya kecil.
             let i = 0;
             while (i < data.length) {
-                const chunk = data.slice(i, i + 512);
+                const chunk = data.slice(i, i + 50);
                 await characteristic.writeValue(chunk);
-                i += 512;
+                // Beri jeda 50 milidetik agar printer bernapas memproses teksnya
+                await new Promise(resolve => setTimeout(resolve, 50));
+                i += 50;
             }
 
             console.log('Struk berhasil dicetak!');
